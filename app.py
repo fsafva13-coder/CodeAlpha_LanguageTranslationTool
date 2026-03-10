@@ -32,6 +32,9 @@ LANGUAGES = {
     "Malay": "ms", "Malayalam": "ml", "Polish": "pl", "Portuguese": "pt",
     "Russian": "ru", "Spanish": "es", "Tamil": "ta", "Thai": "th",
     "Turkish": "tr", "Ukrainian": "uk", "Urdu": "ur", "Vietnamese": "vi",
+    "Afrikaans": "af", "Bengali": "bn", "Greek": "el", "Hebrew": "iw", 
+    "Persian": "fa", "Filipino": "tl", "Swedish": "sv",
+    
 }
 TARGET_LANGUAGES = {k: v for k, v in LANGUAGES.items() if k != "Auto Detect"}
 
