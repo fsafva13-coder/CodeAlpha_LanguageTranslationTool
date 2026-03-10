@@ -78,7 +78,9 @@ LinkedIn: [Fathima Safva](https://linkedin.com/in/fathima-safva-578294315)
 
 ## 🔗 Project Links
 📂 GitHub: [CodeAlpha_LanguageTranslationTool](https://github.com/fsafva13-coder/CodeAlpha_LanguageTranslationTool)
+
 🌐 Live Demo: [Click to Open App](https://codealphalanguagetranslationtoo-feopv2kcn8cnaaust2bo6x.streamlit.app/)
+
 ---
 
 ## 📄 License
