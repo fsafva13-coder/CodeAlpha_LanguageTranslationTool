@@ -1,6 +1,7 @@
 import streamlit as st
 from deep_translator import GoogleTranslator
 from deep_translator.exceptions import LanguageNotSupportedException
+from langdetect import detect as lang_detect
 import time
 
 st.set_page_config(page_title="LinguaAI — Translator", page_icon="🌐", layout="centered")
@@ -19,9 +20,6 @@ st.markdown("""
     .detected-badge { display: inline-block; background: rgba(52,211,153,0.15);
         border: 1px solid rgba(52,211,153,0.4); color: #34d399; font-size: 0.8rem;
         padding: 0.2rem 0.8rem; border-radius: 20px; margin-bottom: 0.8rem; }
-    .stButton > button { width: 100%; background: linear-gradient(135deg, #6366f1, #8b5cf6);
-        color: white; font-weight: 600; font-size: 1rem; border: none; border-radius: 10px; padding: 0.7rem 1.5rem; }
-    .stButton > button:hover { background: linear-gradient(135deg, #818cf8, #a78bfa); }
     .stForm [data-testid="stFormSubmitButton"] > button { width: 100%;
         background: linear-gradient(135deg, #6366f1, #8b5cf6) !important;
         color: white !important; font-weight: 600 !important; font-size: 1rem !important;
@@ -75,22 +73,22 @@ if translate_clicked:
         source_code = LANGUAGES[source_lang_name]
         target_code = TARGET_LANGUAGES[target_lang_name]
 
-       try:
-          from langdetect import detect as lang_detect
-          detected_code = lang_detect(input_text)
-          # fix some code mismatches
-          if detected_code == "zh-cn": detected_code = "zh-CN"
-          if detected_code == "zh-tw": detected_code = "zh-TW"
-          if detected_code == "he": detected_code = "iw"
-       except:
-          detected_code = None
-
+        # Detect actual language of input
+        try:
+            detected_code = lang_detect(input_text)
+            if detected_code == "zh-cn": detected_code = "zh-CN"
+            if detected_code == "zh-tw": detected_code = "zh-TW"
+            if detected_code == "he": detected_code = "iw"
+        except:
+            detected_code = None
 
         detected_name = CODE_TO_NAME.get(detected_code, detected_code) if detected_code else None
 
         if source_code != "auto" and detected_code and detected_code != source_code:
-            st.warning(f"⚠️ You selected **{source_lang_name}** as source, but the text appears to be **{detected_name}**. "
-                       f"Please enter text in {source_lang_name}, or switch Source Language to **Auto Detect**.")
+            st.warning(
+                f"⚠️ You selected **{source_lang_name}** as source, but the text appears to be **{detected_name}**. "
+                f"Please enter text in {source_lang_name}, or switch Source Language to **Auto Detect**."
+            )
         elif source_code == target_code:
             st.warning("⚠️ Source and target languages are the same. Please select different languages.")
         else:
@@ -101,8 +99,10 @@ if translate_clicked:
                     translated_text = translator.translate(input_text)
                 st.success("✅ Translation complete!")
                 if source_code == "auto" and detected_name:
-                    st.markdown(f'<div class="detected-badge">🔍 Detected language: {detected_name}</div>',
-                                unsafe_allow_html=True)
+                    st.markdown(
+                        f'<div class="detected-badge">🔍 Detected language: {detected_name}</div>',
+                        unsafe_allow_html=True
+                    )
                 st.markdown("**📄 Translated Text:**")
                 st.markdown(f'<div class="result-box">{translated_text}</div>', unsafe_allow_html=True)
                 st.markdown("<br>", unsafe_allow_html=True)
@@ -117,4 +117,3 @@ if translate_clicked:
 st.markdown("---")
 st.markdown('<div class="footer">Built for CodeAlpha AI Internship — Task 1: Language Translation Tool 🌐</div>',
             unsafe_allow_html=True)
-
