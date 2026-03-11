@@ -16,30 +16,39 @@ st.markdown("""
     .subtitle { text-align: center; color: #94a3b8; font-size: 1rem; margin-bottom: 2rem; }
     .result-box { background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.4);
         border-radius: 12px; padding: 1.2rem 1.5rem; font-size: 1.1rem; line-height: 1.7; color: #e2e8f0; margin-top: 1rem; }
+    .detected-badge { display: inline-block; background: rgba(52,211,153,0.15);
+        border: 1px solid rgba(52,211,153,0.4); color: #34d399; font-size: 0.8rem;
+        padding: 0.2rem 0.8rem; border-radius: 20px; margin-bottom: 0.8rem; }
     .stButton > button { width: 100%; background: linear-gradient(135deg, #6366f1, #8b5cf6);
         color: white; font-weight: 600; font-size: 1rem; border: none; border-radius: 10px; padding: 0.7rem 1.5rem; }
     .stButton > button:hover { background: linear-gradient(135deg, #818cf8, #a78bfa); }
+    .stForm [data-testid="stFormSubmitButton"] > button { width: 100%;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6) !important;
+        color: white !important; font-weight: 600 !important; font-size: 1rem !important;
+        border: none !important; border-radius: 10px !important; padding: 0.7rem 1.5rem !important; }
+    .stForm { border: none !important; padding: 0 !important; background: transparent !important; }
     label { color: #c4b5fd !important; font-weight: 500 !important; }
     .footer { text-align: center; color: #64748b; font-size: 0.8rem; margin-top: 3rem; }
 </style>
 """, unsafe_allow_html=True)
 
 LANGUAGES = {
-    "Auto Detect": "auto", "English": "en", "Arabic": "ar",
+    "Auto Detect": "auto", "Afrikaans": "af", "Arabic": "ar", "Bengali": "bn",
     "Chinese (Simplified)": "zh-CN", "Chinese (Traditional)": "zh-TW",
-    "Dutch": "nl", "French": "fr", "German": "de", "Hindi": "hi",
-    "Indonesian": "id", "Italian": "it", "Japanese": "ja", "Korean": "ko",
-    "Malay": "ms", "Malayalam": "ml", "Polish": "pl", "Portuguese": "pt",
-    "Russian": "ru", "Spanish": "es", "Tamil": "ta", "Thai": "th",
-    "Turkish": "tr", "Ukrainian": "uk", "Urdu": "ur", "Vietnamese": "vi",
-    "Afrikaans": "af", "Bengali": "bn", "Greek": "el", "Hebrew": "iw", 
-    "Persian": "fa", "Filipino": "tl", "Swedish": "sv",
-    
+    "Dutch": "nl", "English": "en", "French": "fr", "German": "de",
+    "Greek": "el", "Hebrew": "iw", "Hindi": "hi", "Indonesian": "id",
+    "Italian": "it", "Japanese": "ja", "Korean": "ko", "Malay": "ms",
+    "Malayalam": "ml", "Persian": "fa", "Filipino": "tl", "Polish": "pl",
+    "Portuguese": "pt", "Russian": "ru", "Spanish": "es", "Swedish": "sv",
+    "Tamil": "ta", "Thai": "th", "Turkish": "tr", "Ukrainian": "uk",
+    "Urdu": "ur", "Vietnamese": "vi",
 }
+
+CODE_TO_NAME = {v: k for k, v in LANGUAGES.items()}
 TARGET_LANGUAGES = {k: v for k, v in LANGUAGES.items() if k != "Auto Detect"}
 
 st.markdown('<div class="main-title">🌐 LinguaAI</div>', unsafe_allow_html=True)
-st.markdown('<div class="subtitle">Instant AI-powered translation across 25+ languages</div>', unsafe_allow_html=True)
+st.markdown('<div class="subtitle">Instant AI-powered translation across 31 languages</div>', unsafe_allow_html=True)
 st.markdown("---")
 
 col1, col_arrow, col2 = st.columns([5, 1, 5])
@@ -53,35 +62,52 @@ with col2:
 
 st.markdown("---")
 
-input_text = st.text_area("✏️ Enter text to translate", placeholder="Type or paste your text here...", height=150, max_chars=5000)
-st.caption(f"{len(input_text)}/5000 characters")
-
-translate_clicked = st.button("🚀 Translate")
+with st.form(key="translate_form", clear_on_submit=False):
+    input_text = st.text_area("✏️ Enter text to translate",
+        placeholder="Type or paste your text here...", height=150, max_chars=5000)
+    st.caption(f"{len(input_text) if input_text else 0}/5000 characters")
+    translate_clicked = st.form_submit_button("🚀 Translate")
 
 if translate_clicked:
-    if not input_text.strip():
+    if not input_text or not input_text.strip():
         st.warning("⚠️ Please enter some text before translating!")
     else:
         source_code = LANGUAGES[source_lang_name]
         target_code = TARGET_LANGUAGES[target_lang_name]
-        if source_code == target_code:
+
+        try:
+            detected_code = GoogleTranslator(source="auto", target="en").detect(input_text)
+        except:
+            detected_code = None
+
+        detected_name = CODE_TO_NAME.get(detected_code, detected_code) if detected_code else None
+
+        if source_code != "auto" and detected_code and detected_code != source_code:
+            st.warning(f"⚠️ You selected **{source_lang_name}** as source, but the text appears to be **{detected_name}**. "
+                       f"Please enter text in {source_lang_name}, or switch Source Language to **Auto Detect**.")
+        elif source_code == target_code:
             st.warning("⚠️ Source and target languages are the same. Please select different languages.")
         else:
             try:
                 with st.spinner("✨ Translating..."):
-                    time.sleep(0.5)
+                    time.sleep(0.4)
                     translator = GoogleTranslator(source=source_code, target=target_code)
                     translated_text = translator.translate(input_text)
                 st.success("✅ Translation complete!")
+                if source_code == "auto" and detected_name:
+                    st.markdown(f'<div class="detected-badge">🔍 Detected language: {detected_name}</div>',
+                                unsafe_allow_html=True)
                 st.markdown("**📄 Translated Text:**")
                 st.markdown(f'<div class="result-box">{translated_text}</div>', unsafe_allow_html=True)
                 st.markdown("<br>", unsafe_allow_html=True)
                 st.text_area("📋 Copy translated text", value=translated_text, height=120, key="copy_area")
-                st.caption(f"Translated from **{source_lang_name}** → **{target_lang_name}**")
+                from_label = f"{detected_name} (Auto Detected)" if source_code == "auto" and detected_name else source_lang_name
+                st.caption(f"Translated from **{from_label}** → **{target_lang_name}**")
             except LanguageNotSupportedException:
                 st.error("❌ Language not supported. Try another combination.")
             except Exception as e:
                 st.error(f"❌ Translation failed. Check your internet connection.\n\nError: {str(e)}")
 
 st.markdown("---")
-st.markdown('<div class="footer">Built for CodeAlpha AI Internship — Task 1: Language Translation Tool 🌐</div>', unsafe_allow_html=True)
+st.markdown('<div class="footer">Built for CodeAlpha AI Internship — Task 1: Language Translation Tool 🌐</div>',
+            unsafe_allow_html=True)
