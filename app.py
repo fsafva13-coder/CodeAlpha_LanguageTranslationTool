@@ -75,10 +75,16 @@ if translate_clicked:
         source_code = LANGUAGES[source_lang_name]
         target_code = TARGET_LANGUAGES[target_lang_name]
 
-        try:
-            detected_code = GoogleTranslator(source="auto", target="en").detect(input_text)
-        except:
-            detected_code = None
+       try:
+          from langdetect import detect as lang_detect
+          detected_code = lang_detect(input_text)
+          # fix some code mismatches
+          if detected_code == "zh-cn": detected_code = "zh-CN"
+          if detected_code == "zh-tw": detected_code = "zh-TW"
+          if detected_code == "he": detected_code = "iw"
+       except:
+          detected_code = None
+
 
         detected_name = CODE_TO_NAME.get(detected_code, detected_code) if detected_code else None
 
@@ -111,3 +117,4 @@ if translate_clicked:
 st.markdown("---")
 st.markdown('<div class="footer">Built for CodeAlpha AI Internship — Task 1: Language Translation Tool 🌐</div>',
             unsafe_allow_html=True)
+
